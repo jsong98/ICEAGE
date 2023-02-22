@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeBlockFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Id="4b6c2176-cdfd-4c01-82a4-7cbd0fc652ad" Language="Lua" Name="DirFix_SpeedDown" Type="Component" Source="None" ModifyTime="2022-11-22T21:46:35.277232+09:00">
+  <CoreVersion Major="0" Minor="2" />
+  <ScriptVersion Major="1" Minor="0" />
+  <Description />
+  <Properties />
+  <Methods>
+    <CodeBlockMethod Name="DecreaseSpeedFactor" ExecSpace="All">
+      <Return Type="void" SyncDirection="None" />
+      <Code><![CDATA[
+local kb = self.Entity.KinematicbodyComponent
+local oldSpeedFactor = kb.SpeedFactor
+local newSpeedFactor = Vector2(oldSpeedFactor.x - 3, oldSpeedFactor.y - 3)
+
+kb.SpeedFactor = newSpeedFactor
+]]></Code>
+    </CodeBlockMethod>
+  </Methods>
+  <EntityEventHandlers>
+    <CodeBlockEntityEventHandler Name="HandleRectTileEnterEvent" EventName="RectTileEnterEvent" Target="self" Scope="All">
+      <Code><![CDATA[
+-- Parameters
+local Kinematicbody = event.Kinematicbody
+local TileInfo = event.TileInfo
+local TileMap = event.TileMap
+local TilePosition = event.TilePosition
+--------------------------------------------------------
+if TileInfo.Name == "Box03" and Kinematicbody:IsOnGround() then
+	self:DecreaseSpeedFactor()
+	log("Speed_down")
+end
+]]></Code>
+    </CodeBlockEntityEventHandler>
+  </EntityEventHandlers>
+</CodeBlockFile>

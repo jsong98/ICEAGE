@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeBlockFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Id="1e0c44bf-fd69-4367-9658-60ec4ea8cc75" Language="Lua" Name="DirFixOn" Type="Component" Source="None" ModifyTime="2022-11-22T21:43:26.0745379+09:00">
+  <CoreVersion Major="0" Minor="2" />
+  <ScriptVersion Major="1" Minor="0" />
+  <Description />
+  <Properties />
+  <Methods>
+    <CodeBlockMethod Name="IncreaseSpeedFactor" ExecSpace="All">
+      <Return Type="void" SyncDirection="None" />
+      <Code><![CDATA[
+local kb = self.Entity.KinematicbodyComponent
+local oldSpeedFactor = kb.SpeedFactor
+local newSpeedFactor = Vector2(oldSpeedFactor.x + 3, oldSpeedFactor.y + 3)
+
+kb.SpeedFactor = newSpeedFactor
+]]></Code>
+    </CodeBlockMethod>
+  </Methods>
+  <EntityEventHandlers>
+    <CodeBlockEntityEventHandler Name="HandleRectTileEnterEvent" EventName="RectTileEnterEvent" Target="self" Scope="All">
+      <Code><![CDATA[
+-- Parameters
+local Kinematicbody = event.Kinematicbody
+local TileInfo = event.TileInfo
+local TileMap = event.TileMap
+local TilePosition = event.TilePosition
+--------------------------------------------------------
+if TileInfo.Name == "Box01" and Kinematicbody:IsOnGround() then
+        --self.Entity.CustomPlayerComponent.Drag = -10
+		--self.Entity.CustomPlayerComponent.AirDrag = -10
+		self.Entity.CustomPlayerComponent.Enable = false
+		self:IncreaseSpeedFactor()
+		log("Fixed")
+    end
+]]></Code>
+    </CodeBlockEntityEventHandler>
+  </EntityEventHandlers>
+</CodeBlockFile>
