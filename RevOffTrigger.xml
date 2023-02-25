@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeBlockFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Id="7e0e3ecd-3632-4169-878e-68cffc1b9d70" Language="Lua" Name="RevOffTrigger" Type="Component" Source="None" ModifyTime="2022-11-22T21:43:14.8722079+09:00">
+  <CoreVersion Major="0" Minor="2" />
+  <ScriptVersion Major="1" Minor="0" />
+  <Description />
+  <Properties />
+  <Methods />
+  <EntityEventHandlers>
+    <CodeBlockEntityEventHandler Name="HandleRectTileEnterEvent" EventName="RectTileEnterEvent" Target="self" Scope="All">
+      <Code><![CDATA[
+-- Parameters
+local Kinematicbody = event.Kinematicbody
+local TileInfo = event.TileInfo
+local TileMap = event.TileMap
+local TilePosition = event.TilePosition
+--------------------------------------------------------
+if TileInfo.Name == "House_red" and Kinematicbody:IsOnGround() then
+        	self.Entity.KeyReverse.Enable = false
+		self.Entity.CustomPlayerComponent.Enable = true
+		log("ReverseKeyOff")
+    end
+
+]]></Code>
+    </CodeBlockEntityEventHandler>
+  </EntityEventHandlers>
+</CodeBlockFile>
