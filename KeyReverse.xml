@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeBlockFile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Id="37e9a5f3-20d6-4f07-aa11-70873d06f667" Language="Lua" Name="KeyReverse" Type="Component" Source="None" ModifyTime="2022-11-22T21:42:37.2591309+09:00">
+  <CoreVersion Major="0" Minor="2" />
+  <ScriptVersion Major="1" Minor="0" />
+  <Description />
+  <Properties>
+    <CodeBlockProperty Name="InputDirection" Type="Vector3" DefaultValue="Vector3(0,0,0)" SyncDirection="None" />
+    <CodeBlockProperty Name="IsJumpKeyPressed" Type="boolean" DefaultValue="false" SyncDirection="None" />
+    <CodeBlockProperty Name="IsCrouchKeyPressed" Type="boolean" DefaultValue="false" SyncDirection="None" />
+    <CodeBlockProperty Name="MaxSpeed" Type="number" DefaultValue="4" SyncDirection="None" />
+    <CodeBlockProperty Name="Accel" Type="number" DefaultValue="10" SyncDirection="None" />
+    <CodeBlockProperty Name="Drag" Type="number" DefaultValue="5" SyncDirection="None" />
+    <CodeBlockProperty Name="AirAccel" Type="number" DefaultValue="6" SyncDirection="None" />
+    <CodeBlockProperty Name="AirDrag" Type="number" DefaultValue="4" SyncDirection="None" />
+  </Properties>
+  <Methods>
+    <CodeBlockMethod Name="OnBeginPlay" ExecSpace="ClientOnly">
+      <Return Type="void" SyncDirection="None" />
+      <Arguments />
+      <Code><![CDATA[
+--local controller = self.Entity.PlayerControllerComponent
+--controller.Enable = false
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="GetAccel" ExecSpace="All">
+      <Return Type="number" DefaultValue="0" SyncDirection="None" />
+      <Arguments />
+      <Code><![CDATA[
+local body = self.Entity.KinematicbodyComponent
+
+        if body:IsOnGround() then
+            return self.Accel
+        else
+            return self.AirAccel
+        end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="GetDrag" ExecSpace="All">
+      <Return Type="number" DefaultValue="0" SyncDirection="None" />
+      <Arguments />
+      <Code><![CDATA[
+local body = self.Entity.KinematicbodyComponent
+
+        if body:IsOnGround() then
+            return self.Drag
+        else
+            return self.AirDrag
+        end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="SignOf" ExecSpace="All">
+      <Return Type="number" DefaultValue="0" SyncDirection="None" />
+      <Arguments>
+        <CodeBlockProperty Name="value" Type="number" DefaultValue="0" SyncDirection="None" />
+      </Arguments>
+      <Code><![CDATA[
+if value >= 0 then
+            return 1
+        else
+            return -1
+        end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="UpdateVelocity" ExecSpace="All">
+      <Return Type="void" SyncDirection="None" />
+      <Arguments>
+        <CodeBlockProperty Name="delta" Type="number" DefaultValue="0" SyncDirection="None" />
+      </Arguments>
+      <Code><![CDATA[
+local body = self.Entity.KinematicbodyComponent
+local vel = body.MoveVelocity
+
+        if self.InputDirection.x == 0 then
+            if vel.x ~= 0 then
+                local sign = self:SignOf(vel.x)
+                local drag = self:GetDrag()
+                vel.x = vel.x - drag * sign * delta
+
+                if self:SignOf(vel.x) ~= sign then
+                    vel.x = 0
+                end
+            end
+        else
+            local sign = self:SignOf(vel.x)
+            local accel = self:GetAccel()
+            vel.x = vel.x + self.InputDirection.x * accel * delta
+            vel.x = math.min(vel.x * sign, self.MaxSpeed) * sign
+        end
+
+ 		if self.InputDirection.y == 0 then
+            if vel.y ~= 0 then
+                local sign = self:SignOf(vel.y)
+                local drag = self:GetDrag()
+                vel.y = vel.y - drag * sign * delta
+
+                if self:SignOf(vel.y) ~= sign then
+                    vel.y = 0
+                end
+            end
+        else
+            local sign = self:SignOf(vel.y)
+            local accel = self:GetAccel()
+            vel.y = vel.y + self.InputDirection.y * accel * delta
+            vel.y = math.min(vel.y * sign, self.MaxSpeed) * sign
+        end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="OnUpdate" ExecSpace="ClientOnly">
+      <Return Type="void" SyncDirection="None" />
+      <Arguments>
+        <CodeBlockProperty Name="delta" Type="number" SyncDirection="None" />
+      </Arguments>
+      <Code><![CDATA[
+if self.Entity.PlayerComponent:IsDead()~=true then
+        self:UpdateVelocity(delta)
+
+        self:UpdateAction()
+
+        self:UpdateAnimationState()
+
+        self:UpdateLookDirection()
+	
+end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="UpdateAction" ExecSpace="All">
+      <Return Type="void" SyncDirection="None" />
+      <Arguments />
+      <Code><![CDATA[
+local controller = self.Entity.PlayerControllerComponent
+local body = self.Entity.KinematicbodyComponent
+
+        if self.IsCrouchKeyPressed and body:IsOnGround() then
+            controller:ActionCrouch()
+        end
+
+        if self.IsJumpKeyPressed and body:IsOnGround() then
+            if self.IsCrouchKeyPressed then
+                controller:ActionDownJump()
+            else
+                controller:ActionJump()
+            end
+        end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="UpdateAnimationState" ExecSpace="All">
+      <Return Type="void" SyncDirection="None" />
+      <Arguments />
+      <Code><![CDATA[
+local body = self.Entity.KinematicbodyComponent
+        local state = self.Entity.StateComponent
+	        if body:IsOnGround() then
+		
+	            if self.InputDirection.x ~= 0 then
+	                state:ChangeState("MOVE")
+	            elseif self.IsCrouchKeyPressed then
+	                state:ChangeState("CROUCH")
+	            else
+	                state:ChangeState("IDLE")
+	            end
+	        else
+	            state:ChangeState("FALL")
+	        end
+]]></Code>
+    </CodeBlockMethod>
+    <CodeBlockMethod Name="UpdateLookDirection" ExecSpace="All">
+      <Return Type="void" SyncDirection="None" />
+      <Arguments />
+      <Code><![CDATA[
+local controller = self.Entity.PlayerControllerComponent
+
+        if self.InputDirection.x ~= 0 then
+            if self:SignOf(self.InputDirection.x) < 0 then
+                controller.LookDirectionX = -1
+            else
+                controller.LookDirectionX = 1
+            end
+        end
+]]></Code>
+    </CodeBlockMethod>
+  </Methods>
+  <EntityEventHandlers>
+    <CodeBlockEntityEventHandler Name="HandleKeyDownEvent" EventName="KeyDownEvent" Target="service:InputService" Scope="All">
+      <Code><![CDATA[
+-- Parameters
+local key = event.key
+--------------------------------------------------------
+   if key == KeyboardKey.RightArrow then
+            self.InputDirection.x = self.InputDirection.x - 1
+        end
+   if key == KeyboardKey.LeftArrow then
+            self.InputDirection.x = self.InputDirection.x + 1
+        end
+   if key == KeyboardKey.UpArrow then
+            self.InputDirection.y = self.InputDirection.y - 1
+        end
+   if key == KeyboardKey.DownArrow then
+            self.InputDirection.y = self.InputDirection.y + 1
+            self.IsCrouchKeyPressed = true
+        end
+   --if key == KeyboardKey.LeftAlt or key == KeyboardKey.Space then
+            --self.IsJumpKeyPressed = true
+        --end
+]]></Code>
+    </CodeBlockEntityEventHandler>
+    <CodeBlockEntityEventHandler Name="HandleKeyUpEvent" EventName="KeyUpEvent" Target="service:InputService" Scope="All">
+      <Code><![CDATA[
+-- Parameters
+local key = event.key
+--------------------------------------------------------
+        if key == KeyboardKey.RightArrow then
+            self.InputDirection.x = self.InputDirection.x + 1
+        end
+        if key == KeyboardKey.LeftArrow then
+            self.InputDirection.x = self.InputDirection.x - 1
+        end
+        if key == KeyboardKey.UpArrow then
+            self.InputDirection.y = self.InputDirection.y + 1
+        end
+        if key == KeyboardKey.DownArrow then
+            self.InputDirection.y = self.InputDirection.y - 1
+            self.IsCrouchKeyPressed = false
+        end
+        --if key == KeyboardKey.LeftAlt or key == KeyboardKey.Space then
+            --self.IsJumpKeyPressed = false
+        --end
+]]></Code>
+    </CodeBlockEntityEventHandler>
+  </EntityEventHandlers>
+</CodeBlockFile>
